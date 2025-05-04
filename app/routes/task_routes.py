@@ -18,7 +18,7 @@ def create_task():
     db.session.add(new_task)
     db.session.commit()
 
-    return new_task.to_dict(), 201
+    return {"task": new_task.to_dict()}, 201
 
 @bp.get("")
 def get_all_tasks():
@@ -45,7 +45,7 @@ def get_all_tasks():
 @bp.get("/<task_id>")
 def get_one_task(task_id):
     task = validate_task(task_id)
-    return task.to_dict()
+    return {"task": task.to_dict()}
 
 @bp.put("/<task_id>")
 def update_task(task_id):
@@ -54,7 +54,7 @@ def update_task(task_id):
 
     task.title = request_body["title"]
     task.description = request_body["description"]
-    task.completed_at = request_body["completed_at"]
+    task.completed_at = request_body.get("completed_at")
     db.session.commit()
 
     return Response(status=204, mimetype="application/json")

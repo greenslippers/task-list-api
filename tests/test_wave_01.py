@@ -28,7 +28,7 @@ def test_get_tasks_one_saved_tasks(client, one_task):
             "id": 1,
             "title": "Go on my daily walk 🏞",
             "description": "Notice something new every day",
-            "completed_at": None
+            "is_complete": False
         }
     ]
 
@@ -41,18 +41,21 @@ def test_get_task(client, one_task):
 
     # Assert
     assert response.status_code == 200
+    assert "task" in response_body
     assert response_body == {
+        "task": {
             "id": 1,
             "title": "Go on my daily walk 🏞",
             "description": "Notice something new every day",
-            "completed_at": None
-            }
+            "is_complete": False
+        }
+    }
 
 
 # @pytest.mark.skip(reason="No way to test this feature yet")
-def test_get_task_not_found(client, one_task):
+def test_get_task_not_found(client):
     # Act
-    response = client.get("/tasks/100")
+    response = client.get("/tasks/1")
     response_body = response.get_json()
 
     # Assert
@@ -62,7 +65,7 @@ def test_get_task_not_found(client, one_task):
     # *****************************************************************
     # **Complete test with assertion about response body***************
     # *****************************************************************
-    assert response_body == {"message": "task 100 not found"}
+    assert response_body == {"message": "task 1 not found"}
 
 # @pytest.mark.skip(reason="No way to test this feature yet")
 def test_create_task(client):
@@ -70,18 +73,20 @@ def test_create_task(client):
     response = client.post("/tasks", json={
         "title": "A Brand New Task",
         "description": "Test Description",
-        "completed_at": None
     })
     response_body = response.get_json()
 
     # Assert
     assert response.status_code == 201
+    assert "task" in response_body
     assert response_body == {
+        "task": {
             "id": 1,
             "title": "A Brand New Task",
             "description": "Test Description",
-            "completed_at": None
+            "is_complete": False
         }
+    }
     
     query = db.select(Task).where(Task.id == 1)
     new_task = db.session.scalar(query)
@@ -98,7 +103,6 @@ def test_update_task(client, one_task):
     response = client.put("/tasks/1", json={
         "title": "Updated Task Title",
         "description": "Updated Test Description",
-        "completed_at": None
     })
 
     # Assert
@@ -111,15 +115,12 @@ def test_update_task(client, one_task):
     assert task.description == "Updated Test Description"
     assert task.completed_at == None
 
-
-
 # @pytest.mark.skip(reason="No way to test this feature yet")
 def test_update_task_not_found(client):
     # Act
     response = client.put("/tasks/1", json={
         "title": "Updated Task Title",
         "description": "Updated Test Description",
-        "completed_at": None
     })
     response_body = response.get_json()
 
