@@ -1,5 +1,7 @@
 from datetime import datetime
+import os
 from flask import Blueprint, abort, make_response, request, Response
+import requests
 from app.models.task import Task
 from ..db import db
 
@@ -81,6 +83,8 @@ def mark_complete(task_id):
     task = validate_task(task_id)
     task.completed_at = datetime.now()
 
+    send_slack_message(f"Someone just completed the task {task.title}")
+
     db.session.commit()
     return Response(status=204, mimetype="application/json")
 
@@ -106,3 +110,21 @@ def validate_task(task_id):
         response = {"message": f"task {task_id} not found"}
         abort(make_response(response, 404))
     return task
+
+def send_slack_message(message_text):
+    slack_token = os.getenv("SLACK_BOT_TOKEN")
+    channel = os.getenv("SLACK_CHANNEL_ID")
+
+    headers = {
+        "Authorization": f"Bearer {slack_token}",
+        "Content-Type": "application/json"
+    }
+
+    payload = {
+        "channel": channel,
+        "text": message_text
+    }
+
+    response = requests.post(
+        "https://slack.com/api/chat.postMessage", headers=headers, json=payload
+        )
