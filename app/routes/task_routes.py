@@ -5,7 +5,7 @@ import requests
 from app.models.task import Task
 from ..db import db
 
-bp = Blueprint("bp", __name__, url_prefix="/tasks")
+bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
 
 @bp.post("")
 def create_task():
