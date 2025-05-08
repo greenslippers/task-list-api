@@ -24,8 +24,8 @@ class Task(db.Model):
         task_as_dict["description"] = self.description
         task_as_dict["is_complete"] = self.completed_at is not None
 
-        if self.goal:
-            task_as_dict["goal"] = self.goal.name
+        if self.goal_id:
+            task_as_dict["goal_id"] = self.goal_id
 
         return task_as_dict
     

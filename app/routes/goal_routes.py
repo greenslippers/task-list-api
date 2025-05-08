@@ -1,8 +1,10 @@
-from flask import Blueprint
+from flask import Blueprint, abort, make_response, request, Response
 import os
 from flask import Blueprint, abort, make_response, request, Response
 import requests
 from app.models.goal import Goal
+from app.models.task import Task
+from app.routes.task_routes import validate_task
 from ..db import db
 
 bp = Blueprint("goals_bp", __name__, url_prefix="/goals")
@@ -71,6 +73,41 @@ def delete_goal(goal_id):
     db.session.commit()
 
     return Response(status=204, mimetype="application/json")
+
+@bp.post("/<goal_id>/tasks")
+def create_task_to_goal(goal_id):
+    goal = validate_goal(goal_id)
+
+    request_body = request.get_json()
+    task_ids = request_body.get("task_ids")
+
+    if not task_ids or not isinstance(task_ids, list):
+        return {"message": f"Invalid request: missing task_ids"}, 400
+
+    # Fetch tasks from DB
+    query = db.select(Task).where(Task.id.in_(task_ids))
+    tasks = db.session.scalars(query).all()
+
+    # Clear existing tasks and assign only these
+    goal.tasks = tasks
+
+    db.session.commit()
+
+    return {
+        "id": goal.id,
+        "task_ids": task_ids
+    }, 200
+
+@bp.get("/<goal_id>/tasks")
+def get_tasks_by_goal(goal_id):
+    goal = validate_goal(goal_id)
+    tasks = [task.to_dict() for task in goal.tasks]
+    
+    return {
+        "id": goal.id,
+        "title": goal.title,
+        "tasks": tasks
+    }, 200
 
 def validate_goal(goal_id):
     try:
