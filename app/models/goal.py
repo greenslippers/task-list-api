@@ -14,8 +14,8 @@ class Goal(db.Model):
     def to_dict(self): 
         goal_as_dict = {
             "id": self.id,
-            "title": self.title,
-            "tasks": [task.to_dict() for task in self.tasks]
+            "title": self.title
+            # "tasks": [task.to_dict() for task in self.tasks]
         }
 
         return goal_as_dict
